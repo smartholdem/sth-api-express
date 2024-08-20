@@ -65,10 +65,25 @@ async function getSupply() {
 }
 
 
+async function getLastBlock() {
+    let result = null;
+    try {
+        result = (await axios.get(config.node + '/api/blocks/last')).data.data;
+    } catch(e) {
+
+    }
+    return result;
+}
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('index', {title: 'SmartHoldem API Wrapper'});
 });
+
+router.get('/trng', async function (req, res, next) {
+    res.json(await getSupply())
+});
+
 
 router.get('/blockchain', async function (req, res, next) {
     res.json(await getSupply())
