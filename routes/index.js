@@ -47,11 +47,15 @@ async function getSupply() {
         const totalSupply = (data.supply / 1e8)
 
         result = {
+            symbol: "STH",
             chainId: data.block.id,
             height: data.block.height,
-            supply: totalSupply.toFixed(8),
+            totalSupply: totalSupply.toFixed(8),
             circulation: (totalSupply - burnAddress.balance * 1).toFixed(8),
-            burned: burnAddress.balance
+            burned: {
+                address: burnAddress.address,
+                amount: burnAddress.balance
+            }
         }
 
     } catch (e) {
