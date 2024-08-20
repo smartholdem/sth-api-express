@@ -1,4 +1,5 @@
 {
   "port": 3382,
-  "node": "https://node3.smartholdem.io"
+  "node": "https://node3.smartholdem.io",
+  "burnAddress": "STHsmartHoLdemBurnAddrHereXXXmUW7f"
 }
