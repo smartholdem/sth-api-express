@@ -39,18 +39,19 @@ async function getAddress(address) {
 
 async function getSupply() {
     let result = null;
-    let burned = null;
+    const burnAddress = await getAddress(config['burn']);
 
 
     try {
         const data = (await axios.get(config.node + '/api/blockchain')).data.data;
+        const totalSupply = (data.supply / 1e8)
 
         result = {
             chainId: data.block.id,
             height: data.block.height,
-            supply: (data.supply / 1e8).toFixed(8),
-
-
+            supply: totalSupply.toFixed(8),
+            circulation: (totalSupply - burnAddress.balance * 1).toFixed(8),
+            burned: burnAddress.balance
         }
 
     } catch (e) {
@@ -66,8 +67,7 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/blockchain', async function (req, res, next) {
-
-    res.json(true)
+    res.json(await getSupply())
 });
 
 module.exports = router;
