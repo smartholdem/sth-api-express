@@ -5,6 +5,9 @@ const jsonFile = require('jsonfile');
 const {Buffer} = require("node:buffer");
 const config = jsonFile.readFileSync('./config.json');
 
+let timeCache = Math.floor(Date.now() / 1000);
+let lastBlock = null;
+
 async function getAddress(address) {
     let result = null;
     try {
@@ -37,7 +40,6 @@ async function getAddress(address) {
     return result;
 }
 
-
 async function getSupply() {
     let result = null;
     const burnAddress = await getAddress(config['burn']);
@@ -65,15 +67,18 @@ async function getSupply() {
     return result;
 }
 
-
 async function getLastBlock() {
-    let result = null;
-    try {
-        result = (await axios.get(config.node + '/api/blocks/last')).data.data;
-    } catch(e) {
+    const currTime = Math.floor(Date.now() / 1000);
+    console.log(currTime - timeCache)
+    if (currTime - timeCache >= 8 || !lastBlock) {
+        timeCache = Math.floor(Date.now() / 1000);
+        try {
+            lastBlock = (await axios.get(config.node + '/api/blocks/last')).data.data;
+        } catch(e) {
 
+        }
     }
-    return result;
+    return lastBlock;
 }
 
 async function calcRNG(blockId) {
@@ -99,6 +104,12 @@ router.get('/trng', async function (req, res, next) {
         timestamp: block.timestamp,
         values: rng
     });
+});
+
+router.get('/trng-1', async function (req, res, next) {
+    const block = await getLastBlock();
+    const rng = await calcRNG(block.id);
+    res.json(rng[0]);
 });
 
 
