@@ -1,2 +1,2 @@
-# sth-api-wrapper
-SmartHoldem API Wrapper on Node JS Express
+# sth-api-express
+SmartHoldem API on Node JS Express
