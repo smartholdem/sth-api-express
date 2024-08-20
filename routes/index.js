@@ -77,9 +77,8 @@ async function getLastBlock() {
 }
 
 async function calcRNG(blockId) {
-    //Uint8Array – представляет каждый байт в ArrayBuffer как отдельное число; возможные значения находятся в промежутке от 0 до 255
+    //Uint8Array – представляет каждый байт в ArrayBuffer как отдельное число; возможные значения находятся от 0 до 255
     const rnd = await Uint8Array.from(Buffer.from(blockId, 'hex'));
-    console.log(rnd);
     return (rnd);
 }
 
@@ -90,7 +89,8 @@ router.get('/', function (req, res, next) {
 
 router.get('/trng', async function (req, res, next) {
     const block = await getLastBlock();
-
+    const rng = await calcRNG(block.id)
+    res.json(rng);
 });
 
 
