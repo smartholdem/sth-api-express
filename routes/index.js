@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const jsonFile = require('jsonfile');
+const {Buffer} = require("node:buffer");
 const config = jsonFile.readFileSync('./config.json');
 
 async function getAddress(address) {
@@ -75,13 +76,21 @@ async function getLastBlock() {
     return result;
 }
 
+async function calcRNG(blockId) {
+    //Uint8Array – представляет каждый байт в ArrayBuffer как отдельное число; возможные значения находятся в промежутке от 0 до 255
+    const rnd = await Uint8Array.from(Buffer.from(blockId, 'hex'));
+    console.log(rnd);
+    return (rnd);
+}
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('index', {title: 'SmartHoldem API Wrapper'});
 });
 
 router.get('/trng', async function (req, res, next) {
-    res.json(await getSupply())
+    const block = await getLastBlock();
+
 });
 
 
