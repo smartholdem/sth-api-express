@@ -96,6 +96,7 @@ router.get('/trng', async function (req, res, next) {
     const rng = await calcRNG(block.id);
     res.json({
         blockId: block.id,
+        timestamp: block.timestamp,
         values: rng
     });
 });
