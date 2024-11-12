@@ -43,6 +43,8 @@ async function getAddress(address) {
 async function getSupply() {
     let result = null;
     const burnAddress = await getAddress(config['burn']);
+    const teamAddress = await getAddress('STQK9x2xzfM54n3cACrNahiq5CaWB2HwqR');
+    const communityAddress = await getAddress('SU1znm5azz52GUdvXf7r7RdcR667WMCLMf')
 
 
     try {
@@ -54,11 +56,20 @@ async function getSupply() {
             chainId: data.block.id,
             height: data.block.height,
             totalSupply: totalSupply.toFixed(8),
-            circulation: (totalSupply - burnAddress.balance * 1).toFixed(8),
+            circulation: (totalSupply - burnAddress.balance * 1 - teamAddress.balance * 1 - communityAddress.balance * 1).toFixed(8),
             burned: {
                 address: burnAddress.address,
                 amount: burnAddress.balance
-            }
+            },
+            devFund: {
+                address: 'STQK9x2xzfM54n3cACrNahiq5CaWB2HwqR',
+                amount: teamAddress.balance
+            },
+            communityFund: {
+                address: 'SU1znm5azz52GUdvXf7r7RdcR667WMCLMf',
+                amount: communityAddress.balance
+            },
+
         }
 
     } catch (e) {
