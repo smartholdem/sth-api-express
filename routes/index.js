@@ -6,6 +6,8 @@ const {Buffer} = require("node:buffer");
 const config = jsonFile.readFileSync('./config.json');
 
 let timeCache = Math.floor(Date.now() / 1000);
+let timeCacheStatsTx = 0;
+let timeCacheStatsWallets = 0;
 let lastBlock = null;
 
 async function getAddress(address) {
@@ -80,12 +82,11 @@ async function getSupply() {
 
 async function getLastBlock() {
     const currTime = Math.floor(Date.now() / 1000);
-    console.log(currTime - timeCache)
     if (currTime - timeCache >= 8 || !lastBlock) {
         timeCache = Math.floor(Date.now() / 1000);
         try {
             lastBlock = (await axios.get(config.node + '/api/blocks/last')).data.data;
-        } catch(e) {
+        } catch (e) {
 
         }
     }
@@ -96,16 +97,62 @@ async function calcRNG(blockId) {
     //Uint8Array – представляет каждый байт в ArrayBuffer как отдельное число; возможные значения находятся от 0 до 255
     const rnd = await Uint8Array.from(Buffer.from(blockId, 'hex'));
     let result = [];
-    for (let i= 0; i < rnd.length; i++) {
+    for (let i = 0; i < rnd.length; i++) {
         result.push(rnd[i])
     }
     return (result);
+}
+
+
+async function getTransactions(page, limit) {
+    const currTime = Math.floor(Date.now() / 1000);
+    let result = {};
+    if (currTime - timeCacheStatsTx >= 3600) {
+        timeCacheStatsTx = Math.floor(Date.now() / 1000);
+        try {
+            result = (await axios.get(config.node + '/api/transactions?page=' + page + '&limit=' + limit)).data;
+        } catch (e) {
+            console.log('err:getTransactions');
+        }
+    }
+    return result;
+}
+
+async function getWallets(page, limit) {
+    const currTime = Math.floor(Date.now() / 1000);
+    let result = {};
+    if (currTime - timeCacheStatsWallets >= 3600) {
+        timeCacheStatsWallets = Math.floor(Date.now() / 1000);
+        try {
+            result = (await axios.get(config.node + '/api/wallets?page=' + page + '&limit=' + limit)).data;
+        } catch (e) {
+            console.log('err:getTransactions');
+        }
+    }
+    return result;
+}
+
+
+async function chainStats() {
+    const txs = await getTransactions(1, 1);
+    const wallets = await getWallets(1, 1);
+    return {
+        txs: txs['meta'].count,
+        wallets: wallets['meta'].count,
+    }
 }
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('index', {title: 'SmartHoldem API Wrapper'});
 });
+
+router.get('/chainStats', async function (req, res, next) {
+    res.json(await chainStats());
+});
+
+
+
 
 router.get('/trng', async function (req, res, next) {
     const block = await getLastBlock();
