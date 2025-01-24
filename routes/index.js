@@ -6,6 +6,7 @@ const {Buffer} = require("node:buffer");
 const config = jsonFile.readFileSync('./config.json');
 
 let timeCaching = {
+    timeCacheStats: 0,
     timeCache: 0,
     timeCacheStatsTx: 0,
     timeCacheStatsWallets: 0,
@@ -116,7 +117,7 @@ async function getTransactions(page, limit) {
     const currTime = Math.floor(Date.now() / 1000);
     let result = {};
     console.log(currTime - timeCaching['timeCacheStatsTx'])
-    if (currTime - timeCaching['timeCacheStatsTx'] >= 3600) {
+    if (currTime - timeCaching['timeCacheStatsTx'] >= 60) {
         timeCaching['timeCacheStatsTx'] = Math.floor(Date.now() / 1000);
         try {
             result = (await axios.get(config.node + '/api/transactions?page=' + page + '&limit=' + limit)).data;
@@ -130,7 +131,7 @@ async function getTransactions(page, limit) {
 async function getWallets(page, limit) {
     const currTime = Math.floor(Date.now() / 1000);
     let result = {};
-    if (currTime - timeCaching['timeCacheStatsWallets'] >= 3600) {
+    if (currTime - timeCaching['timeCacheStatsWallets'] >= 60) {
         timeCaching['timeCacheStatsWallets'] = Math.floor(Date.now() / 1000);
         try {
             result = (await axios.get(config.node + '/api/wallets?page=' + page + '&limit=' + limit)).data;
@@ -144,7 +145,7 @@ async function getWallets(page, limit) {
 async function getDelegates(page, limit) {
     const currTime = Math.floor(Date.now() / 1000);
     let result = {};
-    if (currTime - timeCaching['timeCacheStatsDelegates'] >= 3600) {
+    if (currTime - timeCaching['timeCacheStatsDelegates'] >= 60) {
         timeCaching['timeCacheStatsDelegates'] = Math.floor(Date.now() / 1000);
         try {
             result = (await axios.get(config.node + '/api/delegates?page=' + page + '&limit=' + limit)).data;
@@ -162,12 +163,22 @@ async function chainStats() {
     const delegates = await getDelegates(1, 1);
     const blocks = await getLastBlock();
 
-    dataCaching['stats'] = {
-        height: blocks['height'],
-        transactions: txs['meta']['totalCount'],
-        wallets: wallets['meta']['totalCount'],
-        delegates: delegates['meta']['totalCount'],
+    const currTime = Math.floor(Date.now() / 1000);
+    if (currTime - timeCaching['timeCacheStats'] >= 3600) {
+        timeCaching['timeCacheStats'] = Math.floor(Date.now() / 1000);
+        try {
+            dataCaching['stats'] = {
+                height: blocks['height'],
+                transactions: txs['meta']['totalCount'],
+                wallets: wallets['meta']['totalCount'],
+                delegates: delegates['meta']['totalCount'],
+            }
+        } catch (e) {
+            console.log('err:chainStats');
+        }
+
     }
+
 
     return dataCaching;
 }
