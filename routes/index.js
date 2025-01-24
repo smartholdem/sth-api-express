@@ -12,6 +12,10 @@ let timeCaching = {
     timeCacheStatsDelegates: 0
 }
 
+let dataCaching = {
+    stats: {},
+}
+
 let lastBlock = null;
 
 async function getAddress(address) {
@@ -111,6 +115,7 @@ async function calcRNG(blockId) {
 async function getTransactions(page, limit) {
     const currTime = Math.floor(Date.now() / 1000);
     let result = {};
+    console.log(currTime - timeCaching['timeCacheStatsTx'])
     if (currTime - timeCaching['timeCacheStatsTx'] >= 3600) {
         timeCaching['timeCacheStatsTx'] = Math.floor(Date.now() / 1000);
         try {
@@ -156,13 +161,15 @@ async function chainStats() {
     const wallets = await getWallets(1, 1);
     const delegates = await getDelegates(1, 1);
     const blocks = await getLastBlock();
-    return {
+
+    dataCaching['stats'] = {
         height: blocks['height'],
-        txs: txs['meta']['totalCount'],
+        transactions: txs['meta']['totalCount'],
         wallets: wallets['meta']['totalCount'],
         delegates: delegates['meta']['totalCount'],
-
     }
+
+    return dataCaching;
 }
 
 /* GET home page. */
