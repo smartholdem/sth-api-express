@@ -164,7 +164,7 @@ async function chainStats() {
     const blocks = await getLastBlock();
 
     const currTime = Math.floor(Date.now() / 1000);
-    if (currTime - timeCaching['timeCacheStats'] >= 3600) {
+    if (currTime - timeCaching['timeCacheStats'] >= 1800) {
         timeCaching['timeCacheStats'] = Math.floor(Date.now() / 1000);
         try {
             dataCaching['stats'] = {
