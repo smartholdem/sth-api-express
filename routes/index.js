@@ -5,9 +5,13 @@ const jsonFile = require('jsonfile');
 const {Buffer} = require("node:buffer");
 const config = jsonFile.readFileSync('./config.json');
 
-let timeCache = Math.floor(Date.now() / 1000);
-let timeCacheStatsTx = 0;
-let timeCacheStatsWallets = 0;
+let timeCaching = {
+    timeCache: 0,
+    timeCacheStatsTx: 0,
+    timeCacheStatsWallets: 0,
+    timeCacheStatsDelegates: 0
+}
+
 let lastBlock = null;
 
 async function getAddress(address) {
@@ -82,8 +86,8 @@ async function getSupply() {
 
 async function getLastBlock() {
     const currTime = Math.floor(Date.now() / 1000);
-    if (currTime - timeCache >= 8 || !lastBlock) {
-        timeCache = Math.floor(Date.now() / 1000);
+    if (currTime - timeCaching['timeCache'] >= 8 || !lastBlock) {
+        timeCaching['timeCache'] = Math.floor(Date.now() / 1000);
         try {
             lastBlock = (await axios.get(config.node + '/api/blocks/last')).data.data;
         } catch (e) {
@@ -107,8 +111,8 @@ async function calcRNG(blockId) {
 async function getTransactions(page, limit) {
     const currTime = Math.floor(Date.now() / 1000);
     let result = {};
-    if (currTime - timeCacheStatsTx >= 3600) {
-        timeCacheStatsTx = Math.floor(Date.now() / 1000);
+    if (currTime - timeCaching['timeCacheStatsTx'] >= 3600) {
+        timeCaching['timeCacheStatsTx'] = Math.floor(Date.now() / 1000);
         try {
             result = (await axios.get(config.node + '/api/transactions?page=' + page + '&limit=' + limit)).data;
         } catch (e) {
@@ -121,8 +125,8 @@ async function getTransactions(page, limit) {
 async function getWallets(page, limit) {
     const currTime = Math.floor(Date.now() / 1000);
     let result = {};
-    if (currTime - timeCacheStatsWallets >= 3600) {
-        timeCacheStatsWallets = Math.floor(Date.now() / 1000);
+    if (currTime - timeCaching['timeCacheStatsWallets'] >= 3600) {
+        timeCaching['timeCacheStatsWallets'] = Math.floor(Date.now() / 1000);
         try {
             result = (await axios.get(config.node + '/api/wallets?page=' + page + '&limit=' + limit)).data;
         } catch (e) {
@@ -132,13 +136,31 @@ async function getWallets(page, limit) {
     return result;
 }
 
+async function getDelegates(page, limit) {
+    const currTime = Math.floor(Date.now() / 1000);
+    let result = {};
+    if (currTime - timeCaching['timeCacheStatsDelegates'] >= 3600) {
+        timeCaching['timeCacheStatsDelegates'] = Math.floor(Date.now() / 1000);
+        try {
+            result = (await axios.get(config.node + '/api/delegates?page=' + page + '&limit=' + limit)).data;
+        } catch (e) {
+            console.log('err:getDelegates');
+        }
+    }
+    return result;
+}
+
 
 async function chainStats() {
     const txs = await getTransactions(1, 1);
     const wallets = await getWallets(1, 1);
+    const blocks = await getLastBlock();
+    console.log(blocks)
     return {
-        txs: txs['meta'].count,
-        wallets: wallets['meta'].count,
+        height: blocks['height'],
+        txs: txs['meta']['totalCount'],
+        wallets: wallets['meta']['totalCount'],
+
     }
 }
 
