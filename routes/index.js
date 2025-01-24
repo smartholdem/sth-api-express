@@ -154,12 +154,13 @@ async function getDelegates(page, limit) {
 async function chainStats() {
     const txs = await getTransactions(1, 1);
     const wallets = await getWallets(1, 1);
+    const delegates = await getDelegates(1, 1);
     const blocks = await getLastBlock();
-    console.log(blocks)
     return {
         height: blocks['height'],
         txs: txs['meta']['totalCount'],
         wallets: wallets['meta']['totalCount'],
+        delegates: delegates['meta']['totalCount'],
 
     }
 }
