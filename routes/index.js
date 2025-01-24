@@ -180,7 +180,7 @@ async function chainStats() {
     }
 
 
-    return dataCaching;
+    return dataCaching['stats'];
 }
 
 /* GET home page. */
@@ -188,7 +188,7 @@ router.get('/', function (req, res, next) {
     res.render('index', {title: 'SmartHoldem API Wrapper'});
 });
 
-router.get('/chainStats', async function (req, res, next) {
+router.get('/stats', async function (req, res, next) {
     res.json(await chainStats());
 });
 
